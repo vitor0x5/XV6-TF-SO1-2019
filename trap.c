@@ -97,10 +97,15 @@ trap(struct trapframe *tf)
   // Force process exit if it has been killed and is in user space.
   // (If it is still executing in the kernel, let it keep running
   // until it gets to the regular system call return.)
-  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
+  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
+    myproc()->turnaround_t = myproc()->waiting_t + myproc()->running_t;
+    cprintf("times: r = %d, w = %d, t= %d\n", 
+      myproc()->running_t, myproc()->waiting_t, myproc()->turnaround_t);
     exit();
+  }
+    
 
-  // Force process to give up CPU on clock tick.
+  // Force process to give up CPU on clock tick (new: depends on the sched policy)
   // If interrupts were on while locks held, would need to check nlock.
   if(myproc() && myproc()->state == RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER){
@@ -108,9 +113,11 @@ trap(struct trapframe *tf)
         yield();
       #else
       #ifdef FRR
-        if(myproc()->slot++ >= QUANTA){
+        if(myproc()->slot++ >= QUANTA){ //Time to give up 
           myproc()->slot = 0;
           yield();
+        }else{
+          myproc()->running_t++;  //Using CPU
         }
       #endif
       #endif

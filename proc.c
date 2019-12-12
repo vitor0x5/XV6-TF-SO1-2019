@@ -191,6 +191,11 @@ fork(void)
     return -1;
   }
 
+  //Start timers
+  np->running_t = 0;
+  np->turnaround_t = 0;
+  np->waiting_t = 0;
+
   // Copy process state from proc.
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
     kfree(np->kstack);
@@ -370,7 +375,7 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -378,8 +383,18 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
+      if(p->state != RUNNABLE){
+        if(p->state != SLEEPING) //Is waiting??
+          p->waiting_t++;
         continue;
+      }
+
+      //verify other process that are waiting for CPU
+      struct proc *waitingProcs;
+      for(waitingProcs = p; waitingProcs < &ptable.proc[NPROC]; waitingProcs++){
+        if(waitingProcs->state == RUNNABLE || waitingProcs->state == SLEEPING)
+          waitingProcs->waiting_t++;
+      }
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -387,6 +402,8 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->running_t++;
+      
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -427,26 +444,6 @@ sched(void)
 }
 
 // Give up the CPU for one scheduling round.
-/*void
-yield(void)
-{ 
-  acquire(&ptable.lock);  //DOC: yieldlock
-  #ifdef DEFAULT
-    myproc()->state = RUNNABLE;
-    sched();
-  #else
-  #ifdef FRR
-    myproc()->slot++;
-    if(myproc()->slot >= QUANTA){ 
-      myproc()->state = RUNNABLE;
-      sched();
-    }
-  #endif
-  #endif
-
-   release(&ptable.lock);
-}*/
-
 void
 yield(void)
 { 
