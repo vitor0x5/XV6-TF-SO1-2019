@@ -12,11 +12,11 @@
 00000000 .debug_loc
 00000000 .debug_ranges
 00000000 usertests.c
-00005e20 args.1408
+00005e20 args.1410
 00000000 ulib.c
 00000000 printf.c
 00003960 printint
-000054f8 digits.1044
+000054f8 digits.1046
 00000000 umalloc.c
 00005ea0 freep
 00005ea4 base
@@ -59,6 +59,7 @@
 000038aa wait
 00003630 rand
 000038ba read
+0000394a runtime
 00000bb0 preempt
 000038f2 unlink
 000035c0 argptest
@@ -77,7 +78,6 @@
 00002d30 sbrktest
 000003f0 opentest
 00001d10 subdir
-0000394a vfork
 00003550 uio
 000015c0 linktest
 000085e0 buf
@@ -86,6 +86,7 @@
 000037e0 stat
 000024d0 bigfile
 00005e20 _edata
+00003952 waittime
 0000a5e4 _end
 00001430 unlinkread
 00003902 link

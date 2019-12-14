@@ -11,11 +11,11 @@
 00000000 .debug_loc
 00000000 .debug_ranges
 00000000 ls.c
-00000dac buf.1055
+00000dac buf.1057
 00000000 ulib.c
 00000000 printf.c
 00000640 printint
-00000a8c digits.1044
+00000a8c digits.1046
 00000000 umalloc.c
 00000dbc freep
 00000dc0 base
@@ -37,6 +37,7 @@
 000005ba exec
 0000058a wait
 0000059a read
+0000062a runtime
 000005d2 unlink
 0000057a fork
 0000060a sbrk
@@ -46,9 +47,9 @@
 00000000 main
 00000360 strcmp
 000005fa dup
-0000062a vfork
 000004c0 stat
 00000dac _edata
+00000632 waittime
 00000dc8 _end
 000005e2 link
 00000100 ls

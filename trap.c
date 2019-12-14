@@ -99,8 +99,8 @@ trap(struct trapframe *tf)
   // until it gets to the regular system call return.)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
     myproc()->turnaround_t = myproc()->waiting_t + myproc()->running_t;
-    cprintf("times: r = %d, w = %d, t= %d\n", 
-      myproc()->running_t, myproc()->waiting_t, myproc()->turnaround_t);
+    /*cprintf("times: r = %d, w = %d, t= %d\n", 
+      myproc()->running_t, myproc()->waiting_t, myproc()->turnaround_t);*/
     exit();
   }
     
@@ -125,6 +125,9 @@ trap(struct trapframe *tf)
     
 
   // Check if the process has been killed since we yielded
-  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
+  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
+    myproc()->turnaround_t = myproc()->waiting_t + myproc()->running_t;
     exit();
+  }
+    
 }

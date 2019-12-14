@@ -12,11 +12,11 @@
 00000000 .debug_loc
 00000000 .debug_ranges
 00000000 sh.c
-000018a0 buf.1082
+000018a0 buf.1084
 00000000 ulib.c
 00000000 printf.c
 00000dd0 printint
-000012b8 digits.1044
+000012b8 digits.1046
 00000000 umalloc.c
 00001904 freep
 00001908 base
@@ -52,6 +52,7 @@
 00000d1a wait
 00001874 symbols
 00000d2a read
+00000dba runtime
 000006f0 parseexec
 00000d62 unlink
 00000150 panic
@@ -65,9 +66,9 @@
 00000d8a dup
 000003b0 pipecmd
 00000360 redircmd
-00000dba vfork
 00000c50 stat
 00001882 _edata
+00000dc2 waittime
 00001910 _end
 00000d72 link
 00000d12 exit

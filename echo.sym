@@ -14,7 +14,7 @@
 00000000 ulib.c
 00000000 printf.c
 00000380 printint
-00000788 digits.1044
+00000788 digits.1046
 00000000 umalloc.c
 00000a34 freep
 00000a38 base
@@ -35,6 +35,7 @@
 000002fa exec
 000002ca wait
 000002da read
+0000036a runtime
 00000312 unlink
 000002ba fork
 0000034a sbrk
@@ -44,9 +45,9 @@
 00000000 main
 000000a0 strcmp
 0000033a dup
-0000036a vfork
 00000200 stat
 00000a34 _edata
+00000372 waittime
 00000a40 _end
 00000322 link
 000002c2 exit

@@ -228,49 +228,6 @@ fork(void)
   return pid;
 }
 
-int
-vfork(void)
-{
-  int i, pid;
-  struct proc *np;
-  struct proc *curproc = myproc();
-
-  // Allocate process.
-  if((np = allocproc()) == 0){
-    return -1;
-  }
-
-  // Copy process state from proc.
-  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
-    kfree(np->kstack);
-    np->kstack = 0;
-    np->state = UNUSED;
-    return -1;
-  }
-  np->sz = curproc->sz;
-  np->parent = curproc;
-  *np->tf = *curproc->tf;
-
-  // Clear %eax so that fork returns 0 in the child.
-  np->tf->eax = 0;
-
-  for(i = 0; i < NOFILE; i++)
-    if(curproc->ofile[i])
-      np->ofile[i] = filedup(curproc->ofile[i]);
-  np->cwd = idup(curproc->cwd);
-
-  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
-
-  pid = np->pid;
-
-  acquire(&ptable.lock);
-  myproc()->state = SLEEPING; //father waiting 
-  np->state = RUNNABLE;
-  release(&ptable.lock);
-  
-  return pid;
-}
-
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
@@ -593,4 +550,62 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+//int runtime(){
+  //times: [0]->running time; [1]->waiting time; [2]->turnaround time;
+  /*struct proc *p;
+  int i;*/
+
+  /*for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+        times[0] = p->running_t;
+        times[1] = p->waiting_t;
+        times[2] = p->turnaround_t;
+    }
+  }*/
+  /*cprintf("IN exectime\n");
+  for(i = 1; i < 11; i++){
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == myproc()->pid){
+        cprintf("child %d: running time = %d, waiting time = %d, turnaround time = %d\n",
+                p->pid, p->running_t, p->waiting_t, p->turnaround_t);
+      }
+    }
+  }*/
+  //return myproc()->running_t;
+//}
+
+/*int waittime(){
+  return myproc()->waiting_t;
+}*/
+
+int * waittime(){
+  int i;
+  struct proc *p;
+
+  for(i = 1; i < 11; i++){
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == myproc()->pid + i){
+        myproc()->waiting_times[i-1] = p->waiting_t;
+        break;
+      }
+    }
+  }
+  return myproc()->waiting_times;
+}
+
+int * runtime(){
+  int i;
+  struct proc *p;
+
+  for(i = 1; i < 11; i++){
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == myproc()->pid + i){
+        myproc()->running_times[i-1] = p->waiting_t;
+        break;
+      }
+    }
+  }
+  return myproc()->running_times;
 }

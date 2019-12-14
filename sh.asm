@@ -1963,15 +1963,17 @@ SYSCALL(getyear)
      db7:	cd 40                	int    $0x40
      db9:	c3                   	ret    
 
-00000dba <vfork>:
-SYSCALL(vfork)
+00000dba <runtime>:
+SYSCALL(runtime)
      dba:	b8 17 00 00 00       	mov    $0x17,%eax
      dbf:	cd 40                	int    $0x40
      dc1:	c3                   	ret    
-     dc2:	66 90                	xchg   %ax,%ax
-     dc4:	66 90                	xchg   %ax,%ax
-     dc6:	66 90                	xchg   %ax,%ax
-     dc8:	66 90                	xchg   %ax,%ax
+
+00000dc2 <waittime>:
+SYSCALL(waittime)
+     dc2:	b8 18 00 00 00       	mov    $0x18,%eax
+     dc7:	cd 40                	int    $0x40
+     dc9:	c3                   	ret    
      dca:	66 90                	xchg   %ax,%ax
      dcc:	66 90                	xchg   %ax,%ax
      dce:	66 90                	xchg   %ax,%ax

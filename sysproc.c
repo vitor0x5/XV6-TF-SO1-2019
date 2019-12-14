@@ -98,6 +98,10 @@ sys_getyear(void)
 return 1975;
 }
 
-int sys_vfork(void){
-  return vfork();
+int * sys_runtime(void){
+  return runtime();
+}
+
+int * sys_waittime(void){
+  return waittime();
 }

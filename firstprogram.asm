@@ -559,15 +559,17 @@ SYSCALL(getyear)
  337:	cd 40                	int    $0x40
  339:	c3                   	ret    
 
-0000033a <vfork>:
-SYSCALL(vfork)
+0000033a <runtime>:
+SYSCALL(runtime)
  33a:	b8 17 00 00 00       	mov    $0x17,%eax
  33f:	cd 40                	int    $0x40
  341:	c3                   	ret    
- 342:	66 90                	xchg   %ax,%ax
- 344:	66 90                	xchg   %ax,%ax
- 346:	66 90                	xchg   %ax,%ax
- 348:	66 90                	xchg   %ax,%ax
+
+00000342 <waittime>:
+SYSCALL(waittime)
+ 342:	b8 18 00 00 00       	mov    $0x18,%eax
+ 347:	cd 40                	int    $0x40
+ 349:	c3                   	ret    
  34a:	66 90                	xchg   %ax,%ax
  34c:	66 90                	xchg   %ax,%ax
  34e:	66 90                	xchg   %ax,%ax
