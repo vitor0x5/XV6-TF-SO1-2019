@@ -347,50 +347,20 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
 
-    #ifdef DEFAULT
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+
+      #ifdef DEFAULT
+      if(p->state != RUNNABLE)
+        continue;
+
+      #else
+      #ifdef FRR 
         if(p->state != RUNNABLE)
           continue;
 
-        // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
-        c->proc = p;
-        switchuvm(p);
-        p->state = RUNNING;
-        
-        swtch(&(c->scheduler), p->context);
-        switchkvm();
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-      }
-    #else
-    #ifdef FRR 
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE)
-          continue;
-
-        // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
-        c->proc = p;
-        switchuvm(p);
-        p->state = RUNNING;
-        
-        swtch(&(c->scheduler), p->context);
-        switchkvm();
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-    }
-    #else
-    #ifdef FCFS
-      struct proc *firstCome = 0; //saves the lowest creation time runnable process
-
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      #else
+      #ifdef FCFS
+        struct proc *firstCome = 0; //saves the lowest creation time runnable process
         if(p->state != RUNNABLE)
           continue;
 
@@ -402,27 +372,27 @@ scheduler(void)
             firstCome = p;
         }
 
-        if(firstCome != 0 && firstCome->state == RUNNABLE)
+        if(firstCome != 0 /*&& firstCome->state == RUNNABLE*/)
           p = firstCome;
-        
-        // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
-        c->proc = p;
-        switchuvm(p);
-        p->state = RUNNING;
-        
-        swtch(&(c->scheduler), p->context);
-        switchkvm();
+      
+      #endif
+      #endif
+      #endif
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        
-      }
-    #endif
-    #endif
-    #endif
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
 
     release(&ptable.lock);
 
