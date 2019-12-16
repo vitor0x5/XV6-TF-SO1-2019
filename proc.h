@@ -50,6 +50,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   int slot;
+  int ctime;
   int waiting_t, running_t, turnaround_t;
   int pwaiting_t[10], prunning_t[10], pturnaround_t[10]; 
   int pidtimes;

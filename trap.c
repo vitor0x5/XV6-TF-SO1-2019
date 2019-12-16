@@ -93,7 +93,7 @@ trap(struct trapframe *tf)
   // (If it is still executing in the kernel, let it keep running
   // until it gets to the regular system call return.)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
-    myproc()->turnaround_t = ticks - myproc()->turnaround_t; //actual time
+    myproc()->turnaround_t = ticks - myproc()->ctime; //actual time
     myproc()->waiting_t = myproc()->turnaround_t - myproc()->running_t;
     exit();
   }
@@ -114,12 +114,16 @@ trap(struct trapframe *tf)
       }else{
         myproc()->running_t++;  //still running
       }
+    #else
+    #ifdef FCFS
+      myproc()->running_t++;
+    #endif
     #endif
     #endif
   }
   // Check if the process has been killed since we yielded
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
-    myproc()->turnaround_t = ticks - myproc()->turnaround_t; //actual time
+    myproc()->turnaround_t = ticks - myproc()->ctime; //actual time
     myproc()->waiting_t = myproc()->turnaround_t - myproc()->running_t;
     exit();
   }
