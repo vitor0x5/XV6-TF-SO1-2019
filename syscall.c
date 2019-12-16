@@ -21,6 +21,9 @@ fetchint(uint addr, int *ip)
 
   if(addr >= curproc->sz || addr+4 > curproc->sz)
     return -1;
+  if (curproc->pid > 1 && addr < PGSIZE) {
+	  return -1;  //ERROR: try to access the first page
+  }
   *ip = *(int*)(addr);
   return 0;
 }
@@ -36,6 +39,9 @@ fetchstr(uint addr, char **pp)
 
   if(addr >= curproc->sz)
     return -1;
+  if (curproc->pid > 1 && addr < PGSIZE) {
+	  return -1;  //ERROR: try to access the first page
+  }
   *pp = (char*)addr;
   ep = (char*)curproc->sz;
   for(s = *pp; s < ep; s++){
@@ -44,6 +50,8 @@ fetchstr(uint addr, char **pp)
   }
   return -1;
 }
+
+
 
 // Fetch the nth 32-bit system call argument.
 int

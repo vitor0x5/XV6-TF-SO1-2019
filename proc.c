@@ -92,7 +92,7 @@ found:
   p->running_t = 0;
   p->ctime = ticks; //stores the initial time till the process is kill
   p->waiting_t = 0;
-  p->pidtimes = 0;
+  p->pidtimes = 0;  //aux to syscalls runtime() waittime() e turntime()
 
   release(&ptable.lock);
 
@@ -364,7 +364,7 @@ scheduler(void)
         if(p->state != RUNNABLE)
           continue;
 
-        if(p->pid > 1){
+        if(p->pid > 1){ //ignore init
           if(firstCome != 0){
             if(p->ctime < firstCome->ctime)
               firstCome = p;
@@ -372,7 +372,7 @@ scheduler(void)
             firstCome = p;
         }
 
-        if(firstCome != 0 /*&& firstCome->state == RUNNABLE*/)
+        if(firstCome != 0)
           p = firstCome;
       
       #endif
@@ -585,7 +585,7 @@ int waittime(void){
   return wt;
 }
 
-//returns the raunning time of a son; the variable pid times controls wich child is taking from
+//returns the running time of a son; the variable pid times controls wich child is taking from
 int runtime(void){
   struct proc *p = myproc();
   int rt = p->prunning_t[p->pidtimes];
@@ -593,6 +593,7 @@ int runtime(void){
   return rt;
 }
 
+//returns the turnaround time of a son; the variable pid times controls wich child is taking from
 int turntime(void){
   struct proc *p = myproc();
   int tt = p->pturnaround_t[p->pidtimes];
