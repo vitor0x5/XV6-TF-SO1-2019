@@ -20,10 +20,13 @@ main(void)
   dup(0);  // stderr
 
   #ifdef FRR
-    printf(1, "Scheduler policy: FRR2\n");
+    printf(1, "Scheduler policy: FRR\n");
   #else
   #ifdef DEFAULT
     printf(1, "Scheduler policy: DEFAULT\n");
+  #ifdef FCFS
+    printf(1, "Scheduler policy: FCFS\n");
+  #endif
   #endif
   #endif
 
