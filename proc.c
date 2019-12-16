@@ -191,10 +191,12 @@ fork(void)
     return -1;
   }
 
+
   //Start timers
   np->running_t = 0;
   np->turnaround_t = 0;
   np->waiting_t = 0;
+  np->pidtimes = 0;
 
   // Copy process state from proc.
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
@@ -259,8 +261,13 @@ exit(void)
   // Parent might be sleeping in wait().
   wakeup1(curproc->parent);
 
-  // Pass abandoned children to init.
+  // Pass abandoned children to init and the exec times to parent
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(curproc->parent == p){ //saves the exec times from this process on the parent struct
+      p->pwaiting_t[curproc->pid - p->pid - 1] = curproc->waiting_t;
+      p->prunning_t[curproc->pid - p->pid - 1] = curproc->running_t;
+      p->pturnaround_t[curproc->pid - p->pid - 1] = curproc->turnaround_t;
+    }
     if(p->parent == curproc){
       p->parent = initproc;
       if(p->state == ZOMBIE)
@@ -340,17 +347,22 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+
       if(p->state != RUNNABLE){
-        if(p->state != SLEEPING) //Is waiting??
+        if(p->state != SLEEPING){ //Is waiting??
           p->waiting_t++;
+          p->turnaround_t++;
+        }
         continue;
       }
 
       //verify other process that are waiting for CPU
       struct proc *waitingProcs;
       for(waitingProcs = p; waitingProcs < &ptable.proc[NPROC]; waitingProcs++){
-        if(waitingProcs->state == RUNNABLE || waitingProcs->state == SLEEPING)
+        if(waitingProcs->state == RUNNABLE || waitingProcs->state == SLEEPING){
           waitingProcs->waiting_t++;
+          waitingProcs->turnaround_t++;
+        }
       }
 
       // Switch to chosen process.  It is the process's job
@@ -360,6 +372,7 @@ scheduler(void)
       switchuvm(p);
       p->state = RUNNING;
       p->running_t++;
+      p->turnaround_t++;
       
 
       swtch(&(c->scheduler), p->context);
@@ -552,60 +565,25 @@ procdump(void)
   }
 }
 
-//int runtime(){
-  //times: [0]->running time; [1]->waiting time; [2]->turnaround time;
-  /*struct proc *p;
-  int i;*/
-
-  /*for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid){
-        times[0] = p->running_t;
-        times[1] = p->waiting_t;
-        times[2] = p->turnaround_t;
-    }
-  }*/
-  /*cprintf("IN exectime\n");
-  for(i = 1; i < 11; i++){
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->pid == myproc()->pid){
-        cprintf("child %d: running time = %d, waiting time = %d, turnaround time = %d\n",
-                p->pid, p->running_t, p->waiting_t, p->turnaround_t);
-      }
-    }
-  }*/
-  //return myproc()->running_t;
-//}
-
-/*int waittime(){
-  return myproc()->waiting_t;
-}*/
-
-int * waittime(){
-  int i;
-  struct proc *p;
-
-  for(i = 1; i < 11; i++){
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->pid == myproc()->pid + i){
-        myproc()->waiting_times[i-1] = p->waiting_t;
-        break;
-      }
-    }
-  }
-  return myproc()->waiting_times;
+//returns the waiting time of a son; the variable pid times controls wich child is taking from
+int waittime(void){
+  struct proc *p = myproc();
+  int wt = p->pwaiting_t[p->pidtimes]; 
+  p->pidtimes++;  //increments pidtimes to take the waiting time of other son in the next call
+  return wt;
 }
 
-int * runtime(){
-  int i;
-  struct proc *p;
+//returns the raunning time of a son; the variable pid times controls wich child is taking from
+int runtime(void){
+  struct proc *p = myproc();
+  int rt = p->prunning_t[p->pidtimes];
+  //p->pidtimes++;
+  return rt;
+}
 
-  for(i = 1; i < 11; i++){
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->pid == myproc()->pid + i){
-        myproc()->running_times[i-1] = p->waiting_t;
-        break;
-      }
-    }
-  }
-  return myproc()->running_times;
+int turntime(void){
+  struct proc *p = myproc();
+  int tt = p->pturnaround_t[p->pidtimes];
+  //p->pidtimes++;
+  return tt;
 }

@@ -26,8 +26,9 @@ int sleep(int);
 int uptime(void);
 
 int getyear(void);
-int * runtime(void);
-int * waittime(void);
+int runtime(void);
+int waittime(void);
+int turntime(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

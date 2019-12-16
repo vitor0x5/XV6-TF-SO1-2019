@@ -98,10 +98,14 @@ sys_getyear(void)
 return 1975;
 }
 
-int * sys_runtime(void){
+int sys_runtime(void){
   return runtime();
 }
 
-int * sys_waittime(void){
+int sys_waittime(void){
   return waittime();
+}
+
+int sys_turntime(void){
+  return turntime();
 }

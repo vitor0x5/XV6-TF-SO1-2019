@@ -105,8 +105,9 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 //ADD prototype
 extern int sys_getyear(void);
-extern int sys_runtime(/*int pid, int **/ void);
+extern int sys_runtime(void);
 extern int sys_waittime(void);
+extern int sys_turntime(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -134,6 +135,7 @@ static int (*syscalls[])(void) = {
 [SYS_getyear] sys_getyear,
 [SYS_runtime] sys_runtime,
 [SYS_waittime] sys_waittime,
+[SYS_runtime] sys_turntime,
 };
 
 void
