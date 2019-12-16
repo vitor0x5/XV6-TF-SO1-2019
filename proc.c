@@ -194,7 +194,7 @@ fork(void)
 
   //Start timers
   np->running_t = 0;
-  np->turnaround_t = 0;
+  np->turnaround_t = ticks; //initial time 
   np->waiting_t = 0;
   np->pidtimes = 0;
 
@@ -348,22 +348,10 @@ scheduler(void)
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
-      if(p->state != RUNNABLE){
-        if(p->state != SLEEPING){ //Is waiting??
-          p->waiting_t++;
-          p->turnaround_t++;
-        }
+      if(p->state != RUNNABLE)
         continue;
-      }
 
       //verify other process that are waiting for CPU
-      struct proc *waitingProcs;
-      for(waitingProcs = p; waitingProcs < &ptable.proc[NPROC]; waitingProcs++){
-        if(waitingProcs->state == RUNNABLE || waitingProcs->state == SLEEPING){
-          waitingProcs->waiting_t++;
-          waitingProcs->turnaround_t++;
-        }
-      }
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -371,10 +359,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-      p->running_t++;
-      p->turnaround_t++;
       
-
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -569,7 +554,7 @@ procdump(void)
 int waittime(void){
   struct proc *p = myproc();
   int wt = p->pwaiting_t[p->pidtimes]; 
-  p->pidtimes++;  //increments pidtimes to take the waiting time of other son in the next call
+  //p->pidtimes++;  
   return wt;
 }
 
@@ -584,6 +569,6 @@ int runtime(void){
 int turntime(void){
   struct proc *p = myproc();
   int tt = p->pturnaround_t[p->pidtimes];
-  //p->pidtimes++;
+  p->pidtimes++;  //increments pidtimes to take the waiting time of other son in the next call
   return tt;
 }

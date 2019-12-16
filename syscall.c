@@ -135,7 +135,7 @@ static int (*syscalls[])(void) = {
 [SYS_getyear] sys_getyear,
 [SYS_runtime] sys_runtime,
 [SYS_waittime] sys_waittime,
-[SYS_runtime] sys_turntime,
+[SYS_turntime] sys_turntime,
 };
 
 void

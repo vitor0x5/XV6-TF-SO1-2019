@@ -20,103 +20,100 @@ int main(void){
    f:	53                   	push   %ebx
   10:	51                   	push   %ecx
   11:	be 0a 00 00 00       	mov    $0xa,%esi
-  16:	83 ec 08             	sub    $0x8,%esp
+  16:	83 ec 18             	sub    $0x18,%esp
   19:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
     int i, j;
-    int pid, rtime, wtime;
+    int pid, tt, wt, rt;
     
     for(i = 0; i < 10; i++){
         if(fork() == 0){    //SE filho imprime
   20:	e8 f5 02 00 00       	call   31a <fork>
   25:	85 c0                	test   %eax,%eax
   27:	89 c3                	mov    %eax,%ebx
-  29:	74 7d                	je     a8 <main+0xa8>
+  29:	74 75                	je     a0 <main+0xa0>
     for(i = 0; i < 10; i++){
   2b:	83 ee 01             	sub    $0x1,%esi
   2e:	75 f0                	jne    20 <main+0x20>
   30:	bb 0a 00 00 00       	mov    $0xa,%ebx
   35:	8d 76 00             	lea    0x0(%esi),%esi
-            wait();
             return 0;  //Finaliza execução do processo filho
         }
     }
+
     for(i = 0; i < 10; i++)
         wait(); //pai esperando execução dos filhos
   38:	e8 ed 02 00 00       	call   32a <wait>
     for(i = 0; i < 10; i++)
   3d:	83 eb 01             	sub    $0x1,%ebx
   40:	75 f6                	jne    38 <main+0x38>
-    printf(1, "ACABOUU\n");
-  42:	50                   	push   %eax
-  43:	50                   	push   %eax
 
-    //TODO
+    //imprime os tempos de execução e espera dos  filhos
     for(i = 1; i < 11; i++){
-  44:	bb 01 00 00 00       	mov    $0x1,%ebx
-    printf(1, "ACABOUU\n");
-  49:	68 54 08 00 00       	push   $0x854
-  4e:	6a 01                	push   $0x1
-  50:	e8 3b 04 00 00       	call   490 <printf>
-  55:	83 c4 10             	add    $0x10,%esp
-  58:	90                   	nop
-  59:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
+  42:	bb 01 00 00 00       	mov    $0x1,%ebx
+  47:	89 f6                	mov    %esi,%esi
+  49:	8d bc 27 00 00 00 00 	lea    0x0(%edi,%eiz,1),%edi
         pid = getpid();
-  60:	e8 3d 03 00 00       	call   3a2 <getpid>
-  65:	89 c6                	mov    %eax,%esi
-        rtime = runtime();
-  67:	e8 5e 03 00 00       	call   3ca <runtime>
-  6c:	89 c7                	mov    %eax,%edi
-        wtime = waittime();
+  50:	e8 4d 03 00 00       	call   3a2 <getpid>
+  55:	89 45 e4             	mov    %eax,-0x1c(%ebp)
+        rt = runtime();
+  58:	e8 6d 03 00 00       	call   3ca <runtime>
+  5d:	89 c7                	mov    %eax,%edi
+        wt = waittime();
+  5f:	e8 6e 03 00 00       	call   3d2 <waittime>
+  64:	89 c6                	mov    %eax,%esi
+        tt = turntime();
+  66:	e8 6f 03 00 00       	call   3da <turntime>
         printf(1, "Child %d: running time = %d, waiting time = %d, turnaround time = %d\n",
-  6e:	01 de                	add    %ebx,%esi
+  6b:	83 ec 08             	sub    $0x8,%esp
+  6e:	50                   	push   %eax
+  6f:	56                   	push   %esi
+  70:	8b 75 e4             	mov    -0x1c(%ebp),%esi
+  73:	57                   	push   %edi
+  74:	01 de                	add    %ebx,%esi
     for(i = 1; i < 11; i++){
-  70:	83 c3 01             	add    $0x1,%ebx
-        wtime = waittime();
-  73:	e8 5a 03 00 00       	call   3d2 <waittime>
+  76:	83 c3 01             	add    $0x1,%ebx
         printf(1, "Child %d: running time = %d, waiting time = %d, turnaround time = %d\n",
-  78:	8d 14 07             	lea    (%edi,%eax,1),%edx
-  7b:	83 ec 08             	sub    $0x8,%esp
-  7e:	52                   	push   %edx
-  7f:	50                   	push   %eax
-  80:	57                   	push   %edi
-  81:	56                   	push   %esi
-  82:	68 0c 08 00 00       	push   $0x80c
-  87:	6a 01                	push   $0x1
-  89:	e8 02 04 00 00       	call   490 <printf>
+  79:	56                   	push   %esi
+  7a:	68 0c 08 00 00       	push   $0x80c
+  7f:	6a 01                	push   $0x1
+  81:	e8 0a 04 00 00       	call   490 <printf>
     for(i = 1; i < 11; i++){
-  8e:	83 c4 20             	add    $0x20,%esp
-  91:	83 fb 0b             	cmp    $0xb,%ebx
-  94:	75 ca                	jne    60 <main+0x60>
-            pid+i, rtime, wtime, 
-            rtime + wtime);
+  86:	83 c4 20             	add    $0x20,%esp
+  89:	83 fb 0b             	cmp    $0xb,%ebx
+  8c:	75 c2                	jne    50 <main+0x50>
+            pid+i, rt, wt, tt);
     }
     return 0;
-  96:	8d 65 f0             	lea    -0x10(%ebp),%esp
-  99:	31 c0                	xor    %eax,%eax
-  9b:	59                   	pop    %ecx
-  9c:	5b                   	pop    %ebx
-  9d:	5e                   	pop    %esi
-  9e:	5f                   	pop    %edi
-  9f:	5d                   	pop    %ebp
-  a0:	8d 61 fc             	lea    -0x4(%ecx),%esp
-  a3:	c3                   	ret    
-  a4:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
+  8e:	8d 65 f0             	lea    -0x10(%ebp),%esp
+  91:	31 c0                	xor    %eax,%eax
+  93:	59                   	pop    %ecx
+  94:	5b                   	pop    %ebx
+  95:	5e                   	pop    %esi
+  96:	5f                   	pop    %edi
+  97:	5d                   	pop    %ebp
+  98:	8d 61 fc             	lea    -0x4(%ecx),%esp
+  9b:	c3                   	ret    
+  9c:	8d 74 26 00          	lea    0x0(%esi,%eiz,1),%esi
                 printf(1, "child %d prints for the %d time\n", getpid(), j+1);
-  a8:	83 c3 01             	add    $0x1,%ebx
-  ab:	e8 f2 02 00 00       	call   3a2 <getpid>
-  b0:	53                   	push   %ebx
-  b1:	50                   	push   %eax
-  b2:	68 e8 07 00 00       	push   $0x7e8
-  b7:	6a 01                	push   $0x1
-  b9:	e8 d2 03 00 00       	call   490 <printf>
+  a0:	83 c3 01             	add    $0x1,%ebx
+  a3:	e8 fa 02 00 00       	call   3a2 <getpid>
+  a8:	53                   	push   %ebx
+  a9:	50                   	push   %eax
+  aa:	68 e8 07 00 00       	push   $0x7e8
+  af:	6a 01                	push   $0x1
+  b1:	e8 da 03 00 00       	call   490 <printf>
             for(j = 0; j < 1000; j++){
-  be:	83 c4 10             	add    $0x10,%esp
-  c1:	81 fb e8 03 00 00    	cmp    $0x3e8,%ebx
-  c7:	75 df                	jne    a8 <main+0xa8>
-            wait();
-  c9:	e8 5c 02 00 00       	call   32a <wait>
-            return 0;  //Finaliza execução do processo filho
-  ce:	eb c6                	jmp    96 <main+0x96>
+  b6:	83 c4 10             	add    $0x10,%esp
+  b9:	81 fb e8 03 00 00    	cmp    $0x3e8,%ebx
+  bf:	75 df                	jne    a0 <main+0xa0>
+  c1:	eb cb                	jmp    8e <main+0x8e>
+  c3:	66 90                	xchg   %ax,%ax
+  c5:	66 90                	xchg   %ax,%ax
+  c7:	66 90                	xchg   %ax,%ax
+  c9:	66 90                	xchg   %ax,%ax
+  cb:	66 90                	xchg   %ax,%ax
+  cd:	66 90                	xchg   %ax,%ax
+  cf:	90                   	nop
 
 000000d0 <strcpy>:
 #include "user.h"
@@ -716,7 +713,7 @@ printint(int fd, int xx, int base, int sgn)
  422:	31 d2                	xor    %edx,%edx
  424:	8d 7e 01             	lea    0x1(%esi),%edi
  427:	f7 f1                	div    %ecx
- 429:	0f b6 92 64 08 00 00 	movzbl 0x864(%edx),%edx
+ 429:	0f b6 92 5c 08 00 00 	movzbl 0x85c(%edx),%edx
   }while((x /= base) != 0);
  430:	85 c0                	test   %eax,%eax
     buf[i++] = digits[x % base];
@@ -1007,7 +1004,7 @@ printf(int fd, const char *fmt, ...)
  642:	31 ff                	xor    %edi,%edi
  644:	e9 8f fe ff ff       	jmp    4d8 <printf+0x48>
           s = "(null)";
- 649:	bb 5d 08 00 00       	mov    $0x85d,%ebx
+ 649:	bb 54 08 00 00       	mov    $0x854,%ebx
         while(*s != 0){
  64e:	b8 28 00 00 00       	mov    $0x28,%eax
  653:	e9 72 ff ff ff       	jmp    5ca <printf+0x13a>
@@ -1028,7 +1025,7 @@ free(void *ap)
 
   bp = (Header*)ap - 1;
   for(p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
- 661:	a1 2c 0b 00 00       	mov    0xb2c,%eax
+ 661:	a1 24 0b 00 00       	mov    0xb24,%eax
 {
  666:	89 e5                	mov    %esp,%ebp
  668:	57                   	push   %edi
@@ -1069,7 +1066,7 @@ free(void *ap)
     p->s.ptr = bp;
  69d:	89 08                	mov    %ecx,(%eax)
   freep = p;
- 69f:	a3 2c 0b 00 00       	mov    %eax,0xb2c
+ 69f:	a3 24 0b 00 00       	mov    %eax,0xb24
 }
  6a4:	5b                   	pop    %ebx
  6a5:	5e                   	pop    %esi
@@ -1101,7 +1098,7 @@ free(void *ap)
     p->s.size += bp->s.size;
  6d7:	03 53 fc             	add    -0x4(%ebx),%edx
   freep = p;
- 6da:	a3 2c 0b 00 00       	mov    %eax,0xb2c
+ 6da:	a3 24 0b 00 00       	mov    %eax,0xb24
     p->s.size += bp->s.size;
  6df:	89 50 04             	mov    %edx,0x4(%eax)
     p->s.ptr = bp->s.ptr;
@@ -1134,7 +1131,7 @@ malloc(uint nbytes)
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
  6f9:	8b 45 08             	mov    0x8(%ebp),%eax
   if((prevp = freep) == 0){
- 6fc:	8b 15 2c 0b 00 00    	mov    0xb2c,%edx
+ 6fc:	8b 15 24 0b 00 00    	mov    0xb24,%edx
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
  702:	8d 78 07             	lea    0x7(%eax),%edi
  705:	c1 ef 03             	shr    $0x3,%edi
@@ -1171,7 +1168,7 @@ malloc(uint nbytes)
       return (void*)(p + 1);
     }
     if(p == freep)
- 741:	39 05 2c 0b 00 00    	cmp    %eax,0xb2c
+ 741:	39 05 24 0b 00 00    	cmp    %eax,0xb24
  747:	89 c2                	mov    %eax,%edx
  749:	75 ed                	jne    738 <malloc+0x48>
   p = sbrk(nu * sizeof(Header));
@@ -1190,7 +1187,7 @@ malloc(uint nbytes)
  765:	50                   	push   %eax
  766:	e8 f5 fe ff ff       	call   660 <free>
   return freep;
- 76b:	8b 15 2c 0b 00 00    	mov    0xb2c,%edx
+ 76b:	8b 15 24 0b 00 00    	mov    0xb24,%edx
       if((p = morecore(nunits)) == 0)
  771:	83 c4 10             	add    $0x10,%esp
  774:	85 d2                	test   %edx,%edx
@@ -1219,7 +1216,7 @@ malloc(uint nbytes)
         p->s.size = nunits;
  794:	89 78 04             	mov    %edi,0x4(%eax)
       freep = prevp;
- 797:	89 15 2c 0b 00 00    	mov    %edx,0xb2c
+ 797:	89 15 24 0b 00 00    	mov    %edx,0xb24
 }
  79d:	8d 65 f4             	lea    -0xc(%ebp),%esp
       return (void*)(p + 1);
@@ -1233,13 +1230,13 @@ malloc(uint nbytes)
  7a8:	90                   	nop
  7a9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,%eiz,1),%esi
     base.s.ptr = freep = prevp = &base;
- 7b0:	c7 05 2c 0b 00 00 30 	movl   $0xb30,0xb2c
+ 7b0:	c7 05 24 0b 00 00 28 	movl   $0xb28,0xb24
  7b7:	0b 00 00 
- 7ba:	c7 05 30 0b 00 00 30 	movl   $0xb30,0xb30
+ 7ba:	c7 05 28 0b 00 00 28 	movl   $0xb28,0xb28
  7c1:	0b 00 00 
     base.s.size = 0;
- 7c4:	b8 30 0b 00 00       	mov    $0xb30,%eax
- 7c9:	c7 05 34 0b 00 00 00 	movl   $0x0,0xb34
+ 7c4:	b8 28 0b 00 00       	mov    $0xb28,%eax
+ 7c9:	c7 05 2c 0b 00 00 00 	movl   $0x0,0xb2c
  7d0:	00 00 00 
  7d3:	e9 44 ff ff ff       	jmp    71c <malloc+0x2c>
  7d8:	90                   	nop
