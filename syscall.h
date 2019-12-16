@@ -21,4 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_getyear 22
-#define SYS_vfork  23
+#define SYS_runtime 23
+#define SYS_waittime 24
+#define SYS_turntime 25

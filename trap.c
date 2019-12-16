@@ -86,38 +86,42 @@ trap(struct trapframe *tf)
               tf->trapno, cpuid(), tf->eip, rcr2());
       panic("trap");
     }
-    // In user space, assume process misbehaved.
-    cprintf("pid %d %s: trap %d err %d on cpu %d "
-            "eip 0x%x addr 0x%x--kill proc\n",
-            myproc()->pid, myproc()->name, tf->trapno,
-            tf->err, cpuid(), tf->eip, rcr2());
     myproc()->killed = 1;
   }
 
   // Force process exit if it has been killed and is in user space.
   // (If it is still executing in the kernel, let it keep running
   // until it gets to the regular system call return.)
-  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
+  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
+    myproc()->turnaround_t = ticks - myproc()->turnaround_t; //actual time
+    myproc()->waiting_t = myproc()->turnaround_t - myproc()->running_t;
     exit();
-
-  // Force process to give up CPU on clock tick.
-  // If interrupts were on while locks held, would need to check nlock.
-  if(myproc() && myproc()->state == RUNNING &&
-     tf->trapno == T_IRQ0+IRQ_TIMER){
-      #ifdef default
-        yield();
-      #else
-      #ifdef FRR
-        if(myproc()->slot++ >= QUANTA){
-          myproc()->slot = 0;
-          yield();
-        }
-      #endif
-      #endif
-     }
+  }
     
 
+  // Force process to give up CPU on clock tick (new: depends  on the sched policy)
+  // If interrupts were on while locks held, would need to check nlock.
+  if(myproc() && myproc()->state == RUNNING &&
+  tf->trapno == T_IRQ0+IRQ_TIMER){
+    #ifdef DEFAULT
+      yield();
+    #else
+    #ifdef FRR
+      myproc()->slot++;
+      if(myproc()->slot >= QUANTA){ //Time to give up 
+        myproc()->slot = 0;
+        yield();
+      }else{
+        myproc()->running_t++;  //still running
+      }
+    #endif
+    #endif
+  }
   // Check if the process has been killed since we yielded
-  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
+  if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER){
+    myproc()->turnaround_t = ticks - myproc()->turnaround_t; //actual time
+    myproc()->waiting_t = myproc()->turnaround_t - myproc()->running_t;
     exit();
+  }
+    
 }

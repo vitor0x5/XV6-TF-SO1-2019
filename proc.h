@@ -51,6 +51,8 @@ struct proc {
   char name[16];               // Process name (debugging)
   int slot;
   int waiting_t, running_t, turnaround_t;
+  int pwaiting_t[10], prunning_t[10], pturnaround_t[10]; 
+  int pidtimes;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -59,4 +61,6 @@ struct proc {
 //   fixed-size stack
 //   expandable heap
 
-int vfork(void);
+int runtime(void);
+int waittime(void);
+int turntime(void);

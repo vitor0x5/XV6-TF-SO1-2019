@@ -191,6 +191,13 @@ fork(void)
     return -1;
   }
 
+
+  //Start timers
+  np->running_t = 0;
+  np->turnaround_t = ticks; //initial time 
+  np->waiting_t = 0;
+  np->pidtimes = 0;
+
   // Copy process state from proc.
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
     kfree(np->kstack);
@@ -220,49 +227,6 @@ fork(void)
 
   release(&ptable.lock);
 
-  return pid;
-}
-
-int
-vfork(void)
-{
-  int i, pid;
-  struct proc *np;
-  struct proc *curproc = myproc();
-
-  // Allocate process.
-  if((np = allocproc()) == 0){
-    return -1;
-  }
-
-  // Copy process state from proc.
-  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
-    kfree(np->kstack);
-    np->kstack = 0;
-    np->state = UNUSED;
-    return -1;
-  }
-  np->sz = curproc->sz;
-  np->parent = curproc;
-  *np->tf = *curproc->tf;
-
-  // Clear %eax so that fork returns 0 in the child.
-  np->tf->eax = 0;
-
-  for(i = 0; i < NOFILE; i++)
-    if(curproc->ofile[i])
-      np->ofile[i] = filedup(curproc->ofile[i]);
-  np->cwd = idup(curproc->cwd);
-
-  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
-
-  pid = np->pid;
-
-  acquire(&ptable.lock);
-  myproc()->state = SLEEPING; //father waiting 
-  np->state = RUNNABLE;
-  release(&ptable.lock);
-  
   return pid;
 }
 
@@ -297,8 +261,13 @@ exit(void)
   // Parent might be sleeping in wait().
   wakeup1(curproc->parent);
 
-  // Pass abandoned children to init.
+  // Pass abandoned children to init and the exec times to parent
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(curproc->parent == p){ //saves the exec times from this process on the parent struct
+      p->pwaiting_t[curproc->pid - p->pid - 1] = curproc->waiting_t;
+      p->prunning_t[curproc->pid - p->pid - 1] = curproc->running_t;
+      p->pturnaround_t[curproc->pid - p->pid - 1] = curproc->turnaround_t;
+    }
     if(p->parent == curproc){
       p->parent = initproc;
       if(p->state == ZOMBIE)
@@ -370,7 +339,7 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -378,8 +347,11 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+
       if(p->state != RUNNABLE)
         continue;
+
+      //verify other process that are waiting for CPU
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -387,7 +359,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+      
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -427,26 +399,6 @@ sched(void)
 }
 
 // Give up the CPU for one scheduling round.
-/*void
-yield(void)
-{ 
-  acquire(&ptable.lock);  //DOC: yieldlock
-  #ifdef DEFAULT
-    myproc()->state = RUNNABLE;
-    sched();
-  #else
-  #ifdef FRR
-    myproc()->slot++;
-    if(myproc()->slot >= QUANTA){ 
-      myproc()->state = RUNNABLE;
-      sched();
-    }
-  #endif
-  #endif
-
-   release(&ptable.lock);
-}*/
-
 void
 yield(void)
 { 
@@ -596,4 +548,27 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+//returns the waiting time of a son; the variable pid times controls wich child is taking from
+int waittime(void){
+  struct proc *p = myproc();
+  int wt = p->pwaiting_t[p->pidtimes]; 
+  //p->pidtimes++;  
+  return wt;
+}
+
+//returns the raunning time of a son; the variable pid times controls wich child is taking from
+int runtime(void){
+  struct proc *p = myproc();
+  int rt = p->prunning_t[p->pidtimes];
+  //p->pidtimes++;
+  return rt;
+}
+
+int turntime(void){
+  struct proc *p = myproc();
+  int tt = p->pturnaround_t[p->pidtimes];
+  p->pidtimes++;  //increments pidtimes to take the waiting time of other son in the next call
+  return tt;
 }
